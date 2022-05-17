@@ -1,34 +1,33 @@
-import { Component, OnInit, AfterContentChecked } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { switchMap } from 'rxjs';
-import { Category } from '../shared/category';
-import { CategoryService } from '../shared/category.service';
-import toastr  from 'toastr';
+import { Entry } from '../shared/entry';
+import { EntryService } from '../shared/entry.service';
 
 @Component({
-  selector: 'app-category-form',
-  templateUrl: './category-form.component.html',
-  styleUrls: ['./category-form.component.css']
+  selector: 'app-entry-form',
+  templateUrl: './entry-form.component.html',
+  styleUrls: ['./entry-form.component.css']
 })
-export class CategoryFormComponent implements OnInit, AfterContentChecked {
+export class EntryFormComponent implements OnInit {
 
-  categoryForm!: FormGroup;
+  entryForm!: FormGroup;
   currentAction!: string;
   pageTitle!: string;
   errorMessages: string[] = [];
   submittingForm: boolean = false;
-  category: Category = new Category();
+  entry: Entry = new Entry();
 
   constructor(
-    private categoryService: CategoryService,
+    private entryService: EntryService,
     private activatedRoute: ActivatedRoute,
     private router: Router) { }
 
   ngOnInit(): void {
     this.setCurrentAction();
     this.buildForm();
-    this.loadCategory();
+    this.loadEntry();
 
   }
 
@@ -39,9 +38,9 @@ export class CategoryFormComponent implements OnInit, AfterContentChecked {
   submitForm() {
     this.submittingForm = true;
     if (this.currentAction === 'new') {
-      this.createCategory();
+      this.createEntry();
     } else {
-      this.updateCategory();
+      this.updateEntry();
     }
   }
 
@@ -54,23 +53,28 @@ export class CategoryFormComponent implements OnInit, AfterContentChecked {
   }
 
   private buildForm() {
-    this.categoryForm = new FormGroup(
+    this.entryForm = new FormGroup(
       {
         id: new FormControl(null),
         name: new FormControl('', [Validators.required, Validators.minLength(2)]),
-        description: new FormControl(''),
+        description: new FormControl(null),
+        //type: new FormControl(null, [Validators.required]),
+        //amount: new FormControl(null, [Validators.required]),
+        //date: new FormControl(null, [Validators.required]),
+        //paid: new FormControl(null, [Validators.required]),
+        //categoryId: new FormControl(null, [Validators.required])
       },
     )
   }
 
-  loadCategory() {
+  loadEntry() {
     if (this.currentAction == 'edit') {
       this.activatedRoute.paramMap.pipe(
-        switchMap(params => this.categoryService.getById(+(params.get('id') ?? '0')))
+        switchMap(params => this.entryService.getById(+(params.get('id') ?? '0')))
       ).subscribe({
-        next: (category) => {
-          this.category = category;
-          this.categoryForm.patchValue(category) //binds loaded category data to category form
+        next: (entry) => {
+          this.entry = entry;
+          this.entryForm.patchValue(entry) //binds loaded entry data to entry form
         },
         error: (error) => alert("Ocorreu um erro no servidor, tente mais tarde")
       })
@@ -79,26 +83,26 @@ export class CategoryFormComponent implements OnInit, AfterContentChecked {
 
   private setPageTitle() {
     if (this.currentAction === 'new') {
-      this.pageTitle = 'Cadastro de Nova Categoria'
+      this.pageTitle = 'Cadastro de Novo Lançamento'
     } else {
-      const categoryName = this.category.name ?? "";
-      this.pageTitle = 'Atualizando Categoria...: ' + categoryName;
+      const entryName = this.entry.name ?? "";
+      this.pageTitle = 'Atualizando lançamento...: ' + entryName;
     }
 
   }
 
-  private updateCategory() {
-    const category: Category = Object.assign(new Category(), this.categoryForm.value);
-    this.categoryService.update(category).subscribe({
-      next: category => this.actionsForSuccess(category),
+  private updateEntry() {
+    const entry: Entry = Object.assign(new Entry(), this.entryForm.value);
+    this.entryService.update(entry).subscribe({
+      next: entry => this.actionsForSuccess(entry),
       error: error => this.actionsForError(error)
     })
   }
 
-  private createCategory() {
-    const category: Category = Object.assign(new Category(), this.categoryForm.value);
-    this.categoryService.create(category).subscribe({
-      next: category => this.actionsForSuccess(category),
+  private createEntry() {
+    const entry: Entry = Object.assign(new Entry(), this.entryForm.value);
+    this.entryService.create(entry).subscribe({
+      next: entry => this.actionsForSuccess(entry),
       error: error => this.actionsForError(error)
     })
   }
@@ -116,18 +120,17 @@ export class CategoryFormComponent implements OnInit, AfterContentChecked {
 
   /**
    * & Redireciona para a lista e logo depois pra tela de edição do item criado
-   * * /categories
-   * * /categories/id/edit
+   * * /entries
+   * * /entries/id/edit
    */
-  private actionsForSuccess(category: Category): void {
+  private actionsForSuccess(entry: Entry): void {
     toastr.success('Solicitação processada com sucesso');
     this.router
       //não adiciona essa navegação no histórico do navegador
-      .navigateByUrl('categories', { skipLocationChange: true })
+      .navigateByUrl('entries', { skipLocationChange: true })
       .then(
-        () => this.router.navigate(['categories', category.id, 'edit'])
+        () => this.router.navigate(['entries', entry.id, 'edit'])
       )
   }
-
 
 }
