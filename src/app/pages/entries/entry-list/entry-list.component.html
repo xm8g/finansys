@@ -41,8 +41,8 @@
       </td>
       <td class="text-right">
         <strong
-          [class.text-success]="entry.type == 'revenue'"
-          [class.text-danger]="entry.type == 'expense'">
+          [class.text-success]="entry.typeEntry == 'revenue'"
+          [class.text-danger]="entry.typeEntry == 'expense'">
           {{entry.amount}}
         </strong><br>
         <span class="badge badge-light">{{entry.paidText}}</span>

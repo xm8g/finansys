@@ -15,12 +15,20 @@ export class EntryListComponent implements OnInit {
 
 
   ngOnInit(): void {
+    //Lista de lançamentos ordenada por id
     this.entryService.getAll().subscribe({
-      next: entries => this.entries = entries,
+      next: entries => this.entries = entries.sort((a, b) => this.ordena(a,b)),
       error: error => alert('Erro ao carregar as lista de lançamentos')
     });
 
 
+  }
+
+  private ordena(a: Entry, b: Entry): number {
+    if (a && a.id && b && b.id) {
+      return b.id - a.id;
+    }
+    return 0;
   }
 
   deleteEntry(entry: Entry) {
